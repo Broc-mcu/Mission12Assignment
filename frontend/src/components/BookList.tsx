@@ -1,8 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import type { Book } from '../types/Book';
+import { useCart } from './../context/CartContext';
 
 export const BookList = () => {
+  const { addToCart } = useCart();
   const [books, setBooks] = useState<Book[]>([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [pageSize, setPageSize] = useState(5);
@@ -10,6 +12,21 @@ export const BookList = () => {
   const [sortTitle, setSortTitle] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // New States for Mission 12
+  const [categories, setCategories] = useState<string[]>([]);
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
+  const [showToast, setShowToast] = useState(false);
+  const [lastAddedBook, setLastAddedBook] = useState<string>('');
+
+  const fetchCategories = async () => {
+    try {
+      const response = await axios.get(`http://localhost:5099/api/books/categories`);
+      setCategories(response.data);
+    } catch (err) {
+      console.error('Error fetching categories:', err);
+    }
+  };
 
   const fetchBooks = async () => {
     setLoading(true);
@@ -19,7 +36,8 @@ export const BookList = () => {
         params: {
           pageNum: currentPage,
           pageSize: pageSize,
-          sortTitle: sortTitle
+          sortTitle: sortTitle,
+          category: selectedCategory || null
         }
       });
       setBooks(response.data.books);
@@ -33,10 +51,26 @@ export const BookList = () => {
   };
 
   useEffect(() => {
+    fetchCategories();
+  }, []);
+
+  useEffect(() => {
     fetchBooks();
-  }, [currentPage, pageSize, sortTitle]);
+  }, [currentPage, pageSize, sortTitle, selectedCategory]);
 
   const totalPages = Math.ceil(totalRecords / pageSize);
+
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
+    setCurrentPage(1); // Reset page on filter
+  };
+
+  const handleAddToCart = (book: Book) => {
+    addToCart(book);
+    setLastAddedBook(book.title);
+    setShowToast(true);
+    setTimeout(() => setShowToast(false), 3000);
+  };
 
   const handleSortChange = () => {
     setSortTitle(prev => (prev === 'asc' ? 'desc' : 'asc'));
@@ -88,15 +122,46 @@ export const BookList = () => {
         </div>
       )}
 
-      {loading ? (
-        <div className="text-center my-5">
-          <div className="spinner-border text-primary" role="status">
-            <span className="visually-hidden">Loading...</span>
+      <div className="row">
+        {/* Sidebar for Categories */}
+        <div className="col-md-3 mb-4">
+          <div className="card shadow-sm border-0">
+            <div className="card-header bg-primary text-white fw-bold">
+              Categories
+            </div>
+            <ul className="list-group list-group-flush">
+              <li 
+                className={`list-group-item list-group-item-action ${selectedCategory === '' ? 'active fw-bold' : ''}`}
+                style={{cursor: 'pointer'}}
+                onClick={() => handleCategorySelect('')}
+              >
+                All Categories
+              </li>
+              {categories.map(cat => (
+                <li 
+                  key={cat}
+                  className={`list-group-item list-group-item-action ${selectedCategory === cat ? 'active fw-bold' : ''}`}
+                  style={{cursor: 'pointer'}}
+                  onClick={() => handleCategorySelect(cat)}
+                >
+                  {cat}
+                </li>
+              ))}
+            </ul>
           </div>
         </div>
-      ) : (
-        <>
-          <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
+
+        {/* Main Content Area */}
+        <div className="col-md-9">
+          {loading ? (
+            <div className="text-center my-5">
+              <div className="spinner-border text-primary" role="status">
+                <span className="visually-hidden">Loading...</span>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-4">
             {books.map((book) => (
               <div key={book.bookID} className="col">
                 <div className="card h-100 shadow-sm border-0 border-top border-primary border-4 rounded-3 d-flex flex-column" style={{ transition: "transform 0.2s" }} onMouseEnter={(e) => e.currentTarget.style.transform = 'translateY(-5px)'} onMouseLeave={(e) => e.currentTarget.style.transform = 'translateY(0)'}>
@@ -114,8 +179,14 @@ export const BookList = () => {
                       <p className="card-text mb-1"><small><strong>Pages:</strong> {book.pageCount}</small></p>
                     </div>
 
-                    <div className="mt-auto pt-3 border-top mt-3">
-                      <span className="fs-5 fw-bold text-success float-end">${book.price.toFixed(2)}</span>
+                    <div className="mt-auto pt-3 border-top mt-3 d-flex justify-content-between align-items-center">
+                      <span className="fs-5 fw-bold text-success">${book.price.toFixed(2)}</span>
+                      <button 
+                        className="btn btn-sm btn-primary px-3 shadow-sm rounded-pill"
+                        onClick={() => handleAddToCart(book)}
+                      >
+                        Add to Cart
+                      </button>
                     </div>
                   </div>
                 </div>
@@ -166,6 +237,21 @@ export const BookList = () => {
           )}
         </>
       )}
+        </div>
+      </div>
+
+      {/* Bootstrap feature 1: Toast notification (used when adding an item to the cart) */}
+      <div className="toast-container position-fixed bottom-0 end-0 p-3">
+        <div className={`toast align-items-center text-bg-success border-0 ${showToast ? 'show' : 'hide'}`} role="alert" aria-live="assertive" aria-atomic="true">
+          <div className="d-flex">
+            <div className="toast-body fw-semibold">
+              <i className="bi bi-check-circle me-2"></i>
+              Added "{lastAddedBook}" to your cart!
+            </div>
+            <button type="button" className="btn-close btn-close-white me-2 m-auto" onClick={() => setShowToast(false)} aria-label="Close"></button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 };

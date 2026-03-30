@@ -16,9 +16,14 @@ namespace Mission11Assignment.Controllers
         }
 
         [HttpGet]
-        public IActionResult GetBooks(int pageNum = 1, int pageSize = 5, string sortTitle = "")
+        public IActionResult GetBooks(int pageNum = 1, int pageSize = 5, string sortTitle = "", string category = null)
         {
             var query = _context.Books.AsQueryable();
+
+            if (!string.IsNullOrEmpty(category))
+            {
+                query = query.Where(b => b.Category == category);
+            }
 
             if (!string.IsNullOrEmpty(sortTitle))
             {
@@ -45,6 +50,17 @@ namespace Mission11Assignment.Controllers
                 CurrentPage = pageNum,
                 PageSize = pageSize
             });
+        }
+        [HttpGet("categories")]
+        public IActionResult GetCategories()
+        {
+            var categories = _context.Books
+                .Select(b => b.Category)
+                .Distinct()
+                .OrderBy(c => c)
+                .ToList();
+            
+            return Ok(categories);
         }
     }
 }
