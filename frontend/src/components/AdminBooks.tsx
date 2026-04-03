@@ -3,7 +3,7 @@ import axios from 'axios';
 import type { Book } from '../types/Book';
 import { EditBookForm } from './EditBookForm';
 
-const API_URL = 'http://localhost:5099/api/books';
+const API_URL = 'https://mission13-bookstore-broc-angyahdzg5hqadf0.eastus2-01.azurewebsites.net/api/books';
 
 export const AdminBooks = () => {
   const [books, setBooks] = useState<Book[]>([]);

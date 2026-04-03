@@ -21,7 +21,7 @@ export const BookList = () => {
 
   const fetchCategories = async () => {
     try {
-      const response = await axios.get(`http://localhost:5099/api/books/categories`);
+      const response = await axios.get(`https://mission13-bookstore-broc-angyahdzg5hqadf0.eastus2-01.azurewebsites.net/api/books/categories`);
       setCategories(response.data);
     } catch (err) {
       console.error('Error fetching categories:', err);
@@ -32,7 +32,7 @@ export const BookList = () => {
     setLoading(true);
     setError(null);
     try {
-      const response = await axios.get(`http://localhost:5099/api/books`, {
+      const response = await axios.get(`https://mission13-bookstore-broc-angyahdzg5hqadf0.eastus2-01.azurewebsites.net/api/books`, {
         params: {
           pageNum: currentPage,
           pageSize: pageSize,
