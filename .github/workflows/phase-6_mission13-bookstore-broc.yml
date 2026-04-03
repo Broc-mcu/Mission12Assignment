@@ -24,10 +24,13 @@ jobs:
           dotnet-version: '10.x'
 
       - name: Build with dotnet
-        run: dotnet build --configuration Release
+        run: dotnet build Mission11Assignment --configuration Release
 
       - name: dotnet publish
-        run: dotnet publish -c Release -o ${{env.DOTNET_ROOT}}/myapp
+        run: dotnet publish Mission11Assignment -c Release -o ${{env.DOTNET_ROOT}}/myapp
+
+      - name: Copy SQLite database
+        run: cp Mission11Assignment/Bookstore.sqlite ${{env.DOTNET_ROOT}}/myapp/ || true
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
