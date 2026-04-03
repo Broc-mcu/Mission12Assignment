@@ -9,7 +9,10 @@ export const Navbar = () => {
       <div className="container">
         <Link className="navbar-brand fw-bold" to="/">Joel Hilton's Book Collection</Link>
         
-        <div className="d-flex ms-auto align-items-center">
+        <div className="d-flex ms-auto align-items-center gap-2">
+          <Link to="/adminbooks" className="btn btn-outline-light">
+            Admin
+          </Link>
           <Link to="/cart" className="btn btn-light position-relative d-flex align-items-center">
             {/* Bootstrap feature 2: position-relative and position-absolute with translates to place a badge over a button! */}
             <span className="me-2">🛒 Cart</span>
